@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Índice</title>
+<style>
+:root{--bg:#12161b;--panel:#181d24;--panel2:#212831;--line:#2c3540;--txt:#e5e9ee;--mut:#9ba7b4;--acc:#4fc3c8;--accbg:#173a40;color-scheme:dark}
+[data-theme=light]{--bg:#f4f6f8;--panel:#fff;--panel2:#edf0f3;--line:#d7dde3;--txt:#1b2127;--mut:#5b6672;--acc:#0b7f86;--accbg:#d9f0f1;color-scheme:light}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{display:flex;overflow:hidden;background:var(--bg);color:var(--txt);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+
+/* Menu lateral */
+#side{width:290px;flex:none;display:flex;flex-direction:column;background:var(--panel);border-right:1px solid var(--line);padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);z-index:30;transition:transform .25s}
+.brand{padding:16px 18px;font-weight:700;font-size:17px;border-bottom:1px solid var(--line)}
+#nav{list-style:none;margin:0;padding:8px;overflow-y:auto;flex:1}
+#nav a{display:block;padding:11px 12px;border-radius:8px;color:var(--mut);text-decoration:none}
+#nav a:hover{background:var(--panel2);color:var(--txt)}
+#nav a.on{background:var(--accbg);color:var(--acc);font-weight:600}
+.foot{padding:10px;border-top:1px solid var(--line)}
+.btn{display:block;width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);text-align:center}
+.btn:hover{border-color:var(--acc)}
+.btn:disabled{opacity:.6;cursor:wait}
+.foot .btn+.btn{margin-top:8px}
+#status{margin:8px 2px 0;font-size:13px;color:var(--mut);overflow-wrap:anywhere}
+#status[hidden]{display:none}
+#scrim{display:none}
+
+/* Área principal */
+main{flex:1;min-width:0;height:100dvh;display:flex;flex-direction:column}
+#top{display:flex;align-items:center;gap:4px;padding:calc(6px + env(safe-area-inset-top)) 10px 6px;background:var(--panel);border-bottom:1px solid var(--line)}
+#titulo{flex:1;min-width:0;margin:0 6px;font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{width:40px;height:40px;border-radius:8px;font-size:18px;flex:none}
+.ib:hover,.ib.on{background:var(--accbg);color:var(--acc)}
+#menuBtn{display:none}
+
+/* Menu horizontal de títulos */
+#heads{display:flex;gap:6px;padding:8px 12px;overflow-x:auto;white-space:nowrap;background:var(--bg);border-bottom:1px solid var(--line);scrollbar-width:thin}
+#heads[hidden]{display:none}
+.chip{flex:none;max-width:70vw;overflow:hidden;text-overflow:ellipsis;padding:7px 13px;border:1px solid var(--line);border-radius:999px;background:var(--panel2);color:var(--mut)}
+.chip.h1{color:var(--txt);font-weight:700}
+.chip.h2{font-size:13px}
+.chip:hover{border-color:var(--acc)}
+.chip.on{background:var(--accbg);border-color:var(--acc);color:var(--acc)}
+
+/* Conteúdo */
+#view{position:relative;flex:1;min-height:0}
+#frame{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+#frame.inv{filter:invert(1) hue-rotate(180deg)}
+#msg{position:absolute;inset:0;z-index:2;overflow:auto;padding:24px 20px;background:var(--bg)}
+#msg[hidden]{display:none}
+#msg .box{max-width:620px;margin:0 auto}
+#msg code,#msg pre{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:13px}
+#msg pre{padding:10px;overflow-x:auto}
+#msg .btn{max-width:260px;margin-top:14px}
+
+@media(max-width:800px){
+  #side{position:fixed;inset:0 auto 0 0;width:min(84vw,320px);transform:translateX(-100%)}
+  body.open #side{transform:none;box-shadow:0 0 40px rgba(0,0,0,.5)}
+  body.open #scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:20}
+  #menuBtn{display:block}
+}
+</style>
+</head>
+<body>
+
+<aside id="side">
+  <div class="brand" id="brand"></div>
+  <ul id="nav"></ul>
+  <div class="foot">
+    <button class="btn" id="pickBtn">Abrir arquivos HTML…</button>
+    <input type="file" id="pick" accept=".html,.htm,text/html" multiple hidden>
+    <button class="btn" id="saveBtn">Salvar tudo em 1 arquivo</button>
+    <div id="status" hidden></div>
+  </div>
+</aside>
+<div id="scrim"></div>
+<script id="embutido" type="application/json"></script>
+
+<main>
+  <div id="top">
+    <button class="ib" id="menuBtn" aria-label="Abrir menu">☰</button>
+    <h1 id="titulo">Índice</h1>
+    <button class="ib" id="btnInv" aria-label="Escurecer o conteúdo da página" title="Escurecer o conteúdo da página">◐</button>
+    <button class="ib" id="btnTema" aria-label="Alternar tema do índice" title="Alternar tema do índice">☀</button>
+  </div>
+  <nav id="heads" aria-label="Títulos da página" hidden></nav>
+  <div id="view">
+    <iframe id="frame" title="Conteúdo da página"></iframe>
+    <div id="msg" hidden></div>
+  </div>
+</main>
+
+<script>
+/* ============================================================
+   CONFIGURAÇÃO — é aqui que você mexe
+   ============================================================ */
+const CONFIG = {
+  titulo: "Meu projeto",          // nome que aparece no topo do menu lateral
+  pasta: "paginas/",              // pasta dos HTMLs. Use "" para a mesma pasta do index.html
+
+  // ▼ ADICIONE SUAS PÁGINAS AQUI (uma por linha, com a extensão .html).
+  //   O nome no menu vem do nome do arquivo: "tabela-de-precos.html" vira "Tabela de precos".
+  //   Para escolher o nome, use { arquivo: "x.html", nome: "Nome que eu quiser" }.
+  paginas: [
+    "introducao.html",
+    "capitulo-1.html",
+    "tabelas.html",
+    // { arquivo: "anexo.html", nome: "Anexo A" },
+  ],
+
+  // Se o servidor mostrar a lista de arquivos da pasta (ex.: python -m http.server),
+  // os .html que não estiverem na lista acima entram sozinhos no final do menu.
+  listarPastaAutomaticamente: true
+};
+/* ============================================================ */
+
+const $ = s => document.querySelector(s);
+const frame = $('#frame'), bar = $('#heads'), msg = $('#msg'), nav = $('#nav');
+const store = {
+  get(k){ try{ return localStorage.getItem(k) }catch(e){ return null } },
+  set(k,v){ try{ localStorage.setItem(k,v) }catch(e){} }
+};
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pretty = f => {
+  const n = f.split('/').pop().replace(/\.html?$/i,'').replace(/[-_]+/g,' ').trim();
+  return n.charAt(0).toUpperCase() + n.slice(1);
+};
+
+const pages = [], cache = new Map();
+let cur = -1, heads = [], fdoc = null, lastOn = -1, tick = 0;
+
+function add(item){
+  const o = typeof item === 'string' ? {arquivo:item} : item;
+  const ex = pages.find(p => p.file === o.arquivo);
+  if (ex){ if (o.local) ex.local = o.local; return ex; }
+  const p = {file:o.arquivo, nome:o.nome || pretty(o.arquivo), local:o.local};
+  pages.push(p); return p;
+}
+
+async function autoListar(){
+  if (!CONFIG.listarPastaAutomaticamente) return;
+  try{
+    const r = await fetch(CONFIG.pasta || './');
+    if (!r.ok) return;
+    const d = new DOMParser().parseFromString(await r.text(), 'text/html');
+    [...d.querySelectorAll('a[href]')]
+      .map(a => decodeURIComponent(a.getAttribute('href').split('?')[0]))
+      .filter(h => /\.html?$/i.test(h) && !h.startsWith('#') && !/^(https?:)?\/\//.test(h))
+      .map(h => h.split('/').pop())
+      .filter(f => f.toLowerCase() !== 'index.html')
+      .sort((a,b) => a.localeCompare(b,'pt',{numeric:true}))
+      .forEach(add);
+  }catch(e){}
+}
+
+/* ---------- menu lateral ---------- */
+function renderNav(){
+  $('#brand').textContent = CONFIG.titulo;
+  nav.innerHTML = pages.map((p,i) =>
+    `<li><a href="#${encodeURIComponent(p.file)}" class="${i===cur?'on':''}">${esc(p.nome)}</a></li>`).join('');
+}
+const setSide = on => document.body.classList.toggle('open', on);
+$('#menuBtn').onclick = () => setSide(true);
+$('#scrim').onclick = () => setSide(false);
+nav.onclick = e => { if (e.target.closest('a')) setSide(false); };
+
+/* ---------- leitura da página ---------- */
+async function getHTML(p){
+  if (cache.has(p.file)) return cache.get(p.file);
+  let t;
+  if (p.local) t = await p.local.text();
+  else {
+    const r = await fetch(CONFIG.pasta + encodeURI(p.file));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    t = await r.text();
+  }
+  cache.set(p.file, t); return t;
+}
+
+async function openPage(i){
+  const p = pages[i]; if (!p) return;
+  cur = i; renderNav();
+  $('#titulo').textContent = p.nome;
+  document.title = p.nome + ' · ' + CONFIG.titulo;
+  msg.hidden = false; msg.innerHTML = '<div class="box">Carregando…</div>';
+  try{
+    const html = await getHTML(p);
+    if (cur !== i) return;
+    frame.srcdoc = html;
+  }catch(e){
+    if (cur !== i) return;
+    bar.hidden = true;
+    msg.innerHTML = `<div class="box">
+      <h2>Não consegui ler <code>${esc(CONFIG.pasta + p.file)}</code></h2>
+      <p>Confira se o arquivo existe com esse nome na pasta. Se você abriu o índice com duplo clique (endereço <code>file://</code>), o navegador bloqueia a leitura de outros arquivos. Escolha uma opção:</p>
+      <p><b>1.</b> Abra o terminal na pasta do projeto e rode:</p>
+      <pre>python -m http.server 8000</pre>
+      <p>Depois acesse <code>http://localhost:8000</code>.</p>
+      <p><b>2.</b> Hospede a pasta (GitHub Pages, Netlify etc.).</p>
+      <p><b>3.</b> Selecione os arquivos HTML manualmente (no computador, use Ctrl+A na pasta):</p>
+      <button class="btn" onclick="$('#pick').click()">Abrir arquivos HTML…</button></div>`;
+  }
+}
+
+$('#pickBtn').onclick = () => $('#pick').click();
+$('#pick').onchange = e => {
+  const files = [...e.target.files].filter(f => /\.html?$/i.test(f.name) && f.name.toLowerCase() !== 'index.html')
+    .sort((a,b) => a.name.localeCompare(b.name,'pt',{numeric:true}));
+  if (!files.length) return;
+  let first = -1;
+  files.forEach(f => { cache.delete(f.name); add({arquivo:f.name, local:f}); });
+  first = pages.findIndex(p => p.file === files[0].name);
+  renderNav(); setSide(false); location.hash = '#' + encodeURIComponent(pages[first].file);
+  if (cur === first) openPage(first);
+  e.target.value = '';
+};
+
+/* ---------- depois que a página carrega ---------- */
+frame.addEventListener('load', () => {
+  if (!frame.srcdoc) return;
+  msg.hidden = true;
+  try{
+    fdoc = frame.contentDocument; void fdoc.body;
+  }catch(e){ fdoc = null; bar.hidden = true; return; }
+
+  const st = fdoc.createElement('style');
+  st.textContent = ':where(img,video){max-width:100%;height:auto}.idx-w{max-width:100%;overflow-x:auto}'
+    + 'html.idx-inv img,html.idx-inv video,html.idx-inv picture{filter:invert(1) hue-rotate(180deg)}';
+  (fdoc.head || fdoc.documentElement).appendChild(st);
+
+  // tabelas rolam na horizontal em telas pequenas, sem mudar o estilo delas
+  fdoc.querySelectorAll('table').forEach(t => {
+    if (t.closest('.idx-w')) return;
+    const w = fdoc.createElement('div'); w.className = 'idx-w';
+    t.before(w); w.appendChild(t);
+  });
+
+  applyInv();
+  buildHeads();
+});
+
+function buildHeads(){
+  const hs = [...fdoc.querySelectorAll('h1,h2')].filter(h => h.textContent.trim());
+  bar.innerHTML = ''; lastOn = -1;
+  heads = hs.map((h,n) => {
+    if (!h.id) h.id = 'idx-' + n;
+    const b = document.createElement('button');
+    b.className = 'chip ' + h.tagName.toLowerCase();
+    b.textContent = b.title = h.textContent.trim().replace(/\s+/g,' ');
+    b.onclick = () => h.scrollIntoView({behavior:'smooth', block:'start'});
+    bar.appendChild(b);
+    return {h, b};
+  });
+  bar.hidden = !heads.length;
+  bar.scrollLeft = 0;
+  fdoc.defaultView.addEventListener('scroll', spy, {passive:true});
+  spy();
+}
+
+function spy(){
+  if (tick || !heads.length) return;
+  tick = requestAnimationFrame(() => {
+    tick = 0;
+    let a = 0;
+    heads.forEach((o,n) => { if (o.h.getBoundingClientRect().top <= 60) a = n; });
+    const w = fdoc.defaultView, e = fdoc.documentElement;
+    if (w.scrollY > 0 && w.innerHeight + w.scrollY >= e.scrollHeight - 4) a = heads.length - 1;
+    if (a === lastOn) return;
+    lastOn = a;
+    heads.forEach((o,n) => o.b.classList.toggle('on', n === a));
+    const b = heads[a].b;
+    bar.scrollTo({left: b.offsetLeft - bar.clientWidth/2 + b.offsetWidth/2, behavior:'smooth'});
+  });
+}
+
+/* ---------- salvar tudo em 1 arquivo ---------- */
+const setStatus = t => { const s = $('#status'); s.hidden = !t; s.textContent = t || ''; };
+
+$('#saveBtn').onclick = async () => {
+  const btn = $('#saveBtn'); btn.disabled = true;
+  const ok = [], falhou = [];
+  for (const [n, p] of pages.entries()){
+    setStatus(`Lendo ${n+1} de ${pages.length}…`);
+    try{ ok.push({arquivo:p.file, nome:p.nome, html:await getHTML(p)}); }
+    catch(e){ falhou.push(p.file); }
+  }
+  if (!ok.length){
+    setStatus('Nenhuma página foi lida. Selecione os arquivos em "Abrir arquivos HTML…" (ou abra o índice por servidor local) e tente de novo.');
+    btn.disabled = false; return;
+  }
+
+  // cópia do próprio índice, limpa, com as páginas gravadas dentro
+  const c = document.documentElement.cloneNode(true);
+  const q = s => c.querySelector(s);
+  c.dataset.theme = 'dark';
+  q('#frame').removeAttribute('srcdoc'); q('#frame').className = '';
+  ['#nav','#heads','#msg'].forEach(s => q(s).innerHTML = '');
+  q('#heads').hidden = true; q('#msg').hidden = true;
+  q('#titulo').textContent = 'Índice'; q('#brand').textContent = '';
+  q('#btnInv').className = 'ib'; q('#btnTema').textContent = '☀';
+  q('body').className = ''; q('title').textContent = 'Índice';
+  q('#embutido').textContent = JSON.stringify(ok).replace(/</g, '\\u003c');
+
+  const nome = (CONFIG.titulo.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || 'projeto') + '.html';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['<!DOCTYPE html>\n' + c.outerHTML], {type:'text/html'}));
+  a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+
+  setStatus(`Salvo: ${nome}, com ${ok.length} página(s).` + (falhou.length ? ` Não foram lidas: ${falhou.join(', ')}.` : ''));
+  btn.disabled = false;
+};
+
+/* ---------- temas ---------- */
+function applyTheme(){ 
+  const t = store.get('tema') || 'dark';
+  document.documentElement.dataset.theme = t;
+  $('#btnTema').textContent = t === 'dark' ? '☀' : '☾';
+}
+function applyInv(){
+  const on = store.get('inv') === '1';
+  frame.classList.toggle('inv', on);
+  $('#btnInv').classList.toggle('on', on);
+  try{ frame.contentDocument.documentElement.classList.toggle('idx-inv', on) }catch(e){}
+}
+$('#btnTema').onclick = () => { store.set('tema', (store.get('tema')||'dark') === 'dark' ? 'light' : 'dark'); applyTheme(); };
+$('#btnInv').onclick = () => { store.set('inv', store.get('inv') === '1' ? '0' : '1'); applyInv(); };
+
+/* ---------- navegação por endereço (#arquivo.html) ---------- */
+function route(){
+  const f = decodeURIComponent(location.hash.slice(1));
+  const i = pages.findIndex(p => p.file === f);
+  if (i >= 0) { if (i !== cur || msg.querySelector('h2')) openPage(i); }
+  else if (cur < 0) openPage(0);
+}
+addEventListener('hashchange', route);
+
+(async () => {
+  applyTheme();
+  let emb = null;
+  try{ const t = $('#embutido').textContent.trim(); if (t) emb = JSON.parse(t); }catch(e){}
+  if (emb){
+    // arquivo gerado por "Salvar tudo em 1 arquivo": as páginas já estão aqui dentro
+    emb.forEach(o => { cache.set(o.arquivo, o.html); add({arquivo:o.arquivo, nome:o.nome}); });
+    $('.foot').hidden = true;
+  }else{
+    CONFIG.paginas.forEach(add);
+    await autoListar();
+  }
+  renderNav();
+  if (!pages.length){
+    msg.hidden = false;
+    msg.innerHTML = '<div class="box"><h2>Nenhuma página na lista</h2><p>Abra o <code>index.html</code> em um editor e adicione os nomes dos arquivos em <code>CONFIG.paginas</code>.</p></div>';
+    return;
+  }
+  route();
+})();
+</script>
+</body>
+</html>
