@@ -361,6 +361,93 @@
       background-color: var(--bg-canvas);
     }
 
+    /* Tela INÍCIO (lê logo.webp diretamente da pasta, online e offline) */
+    .home-view {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      background-color: #0a0a0a;
+      color: #f4f4f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 24px 72px;
+      text-align: center;
+    }
+
+    .home-view.hidden {
+      display: none;
+    }
+
+    .home-title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #f4f4f5;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .home-logos {
+      max-width: 640px;
+      width: 100%;
+      height: auto;
+      margin-bottom: 44px;
+      mix-blend-mode: lighten;
+    }
+
+    .home-links {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 22px;
+    }
+
+    .home-links a {
+      color: #fbbf24;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .home-links a:hover {
+      color: #f59e0b;
+    }
+
+    .home-empty {
+      color: #a1a1aa;
+      font-size: 0.95rem;
+      margin-top: 4px;
+      max-width: 420px;
+      line-height: 1.5;
+    }
+
+    .home-error {
+      color: #fca5a5;
+      font-size: 0.95rem;
+      margin-top: 4px;
+      max-width: 420px;
+      line-height: 1.5;
+    }
+
+    .home-hint {
+      color: #a1a1aa;
+      font-size: 0.85rem;
+      margin-top: 14px;
+      max-width: 420px;
+      line-height: 1.55;
+    }
+
+    .home-hint code {
+      color: #fbbf24;
+      word-break: break-all;
+    }
+
     /* O iframe mantém o fundo branco padrão do navegador para não alterar o layout das páginas */
     #page-frame {
       width: 100%;
@@ -368,6 +455,10 @@
       border: none;
       display: block;
       background-color: #ffffff;
+    }
+
+    #page-frame.hidden {
+      display: none;
     }
   </style>
 </head>
@@ -413,18 +504,27 @@
 
   <!-- Área de Leitura -->
   <main class="viewer-container" id="viewer-container">
-    <iframe id="page-frame" title="Conteúdo da página"></iframe>
+    <section class="home-view" id="home-view" aria-label="Página inicial">
+      <p class="home-title">Início</p>
+      <img class="home-logos" id="home-logo-img" alt="Escudos da AS Roma" />
+      <div id="home-content"></div>
+    </section>
+
+    <iframe id="page-frame" class="hidden" title="Conteúdo da página"></iframe>
   </main>
 
 
   <!-- =====================================================================
-       1) CONFIGURAÇÃO DAS PÁGINAS DO SITE   <<<  É AQUI QUE VOCÊ ADICIONA PÁGINAS
+       1) CONFIGURAÇÃO DAS PÁGINAS E DA LOGO   <<<  É AQUI QUE VOCÊ CONFIGURA
        =====================================================================
        Este bloco é separado do resto do código de propósito: se você errar
        uma vírgula ou uma aspa aqui, o site continua abrindo e mostra um aviso
        na tela INÍCIO dizendo que a lista tem erro (em vez de ficar tudo em branco).
        ===================================================================== -->
   <script>
+    // Nome do arquivo da logo na mesma pasta do index.html
+    const LOGO_ARQUIVO = "logo.webp";
+
     // =====================================================================
     // CONFIGURAÇÃO DAS PÁGINAS DO SITE
     // =====================================================================
@@ -468,12 +568,7 @@
     // =====================================================================
   </script>
 
-  <!-- 2) Imagem dos escudos da Roma exibida na INÍCIO (não precisa mexer) -->
-  <script>
-    const HOME_LOGO_BASE64 = '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';
-  </script>
-
-  <!-- 3) Código do site (não precisa mexer) -->
+  <!-- 2) Código do site (não precisa mexer) -->
   <script>
     (function () {
       // -------------------------------------------------------------------
@@ -489,9 +584,9 @@
         configError: null
       };
 
-      // Controla o que está carregado no iframe e qual âncora abrir após o onload
       let displayedId = null;
       let pendingAnchor = null;
+      let headingObserver = null;
 
       // -------------------------------------------------------------------
       // REFERÊNCIAS DO DOM
@@ -505,6 +600,9 @@
       const currentPageTitle = document.getElementById('current-page-title');
       const tocList = document.getElementById('toc-list');
       const darkModeToggle = document.getElementById('dark-mode-toggle');
+      const homeView = document.getElementById('home-view');
+      const homeLogoImg = document.getElementById('home-logo-img');
+      const homeContent = document.getElementById('home-content');
       const pageFrame = document.getElementById('page-frame');
 
       // -------------------------------------------------------------------
@@ -610,8 +708,12 @@
       });
 
       homeSelectBtn.addEventListener('click', () => {
-        navigateTo(HOME_PAGE_ID, null);
         closeSidebar();
+        if (state.activePageId === HOME_PAGE_ID) {
+          homeView.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          navigateTo(HOME_PAGE_ID, null);
+        }
       });
 
       function atualizarItemAtivoDoMenu() {
@@ -619,105 +721,58 @@
       }
 
       // -------------------------------------------------------------------
-      // PÁGINA INÍCIO
+      // MONTAGEM DA TELA INÍCIO (LÊ logo.webp DIRETAMENTE DA PASTA)
       // -------------------------------------------------------------------
-      function escapeHtml(str) {
-        return String(str)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#39;');
-      }
-
-      const ESTILO_DAS_TELAS_INTERNAS = `
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
-  body {
-    background-color: #0a0a0a;
-    color: #f4f4f5;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 48px 24px 72px;
-    text-align: center;
-    min-height: 100%;
-  }
-  .home-title {
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: #f4f4f5;
-    text-align: center;
-    margin-bottom: 32px;
-  }
-  .home-logos {
-    max-width: 640px;
-    width: 100%;
-    height: auto;
-    margin-bottom: 44px;
-  }
-  .home-links {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 22px;
-  }
-  .home-links a {
-    color: #fbbf24;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-  }
-  .home-links a:hover { color: #f59e0b; }
-  .home-empty {
-    color: #a1a1aa;
-    font-size: 0.95rem;
-    margin-top: 4px;
-    max-width: 420px;
-    line-height: 1.5;
-  }
-  .home-error {
-    color: #fca5a5;
-    font-size: 0.95rem;
-    margin-top: 4px;
-    max-width: 420px;
-    line-height: 1.5;
-  }
-  .home-hint {
-    color: #a1a1aa;
-    font-size: 0.85rem;
-    margin-top: 14px;
-    max-width: 420px;
-    line-height: 1.55;
-  }
-  .home-hint code { color: #fbbf24; word-break: break-all; }`;
-
-      function buildHomePageHtml() {
-        let corpo;
-
-        if (state.configError) {
-          corpo = '<p class="home-error">' + escapeHtml(state.configError) + '</p>' +
-                  '<p class="home-hint">Abra o index.html e confira o bloco <code>CONFIGURAÇÃO DAS PÁGINAS DO SITE</code>.</p>';
-        } else if (state.pages.length === 0) {
-          corpo = '<p class="home-empty">Nenhuma página cadastrada ainda.</p>';
+      function inicializarTelaInicio() {
+        const logoPath = typeof LOGO_ARQUIVO === 'string' ? LOGO_ARQUIVO.trim() : '';
+        if (logoPath) {
+          homeLogoImg.onerror = () => {
+            homeLogoImg.style.display = 'none';
+          };
+          homeLogoImg.src = logoPath;
         } else {
-          corpo = '<nav class="home-links">\n' +
-            state.pages.map((p) =>
-              '        <a href="' + escapeHtml(p.arquivo) + '">' + escapeHtml(p.nome) + '</a>'
-            ).join('\n') +
-            '\n      </nav>';
+          homeLogoImg.style.display = 'none';
         }
 
-        return '<!DOCTYPE html>\n<html lang="pt-BR">\n<head>\n<meta charset="UTF-8">\n<title>Início</title>\n<style>' +
-          ESTILO_DAS_TELAS_INTERNAS +
-          '\n</style>\n</head>\n<body>\n  <p class="home-title">Início</p>\n' +
-          '  <img class="home-logos" src="data:image/webp;base64,' + HOME_LOGO_BASE64 + '" alt="Escudos da AS Roma">\n  ' +
-          corpo + '\n</body>\n</html>';
+        homeContent.innerHTML = '';
+
+        if (state.configError) {
+          const pErr = document.createElement('p');
+          pErr.className = 'home-error';
+          pErr.textContent = state.configError;
+
+          const pHint = document.createElement('p');
+          pHint.className = 'home-hint';
+          pHint.innerHTML = 'Abra o index.html e confira o bloco <code>CONFIGURAÇÃO DAS PÁGINAS DO SITE</code>.';
+
+          homeContent.appendChild(pErr);
+          homeContent.appendChild(pHint);
+          return;
+        }
+
+        if (state.pages.length === 0) {
+          const pEmpty = document.createElement('p');
+          pEmpty.className = 'home-empty';
+          pEmpty.textContent = 'Nenhuma página cadastrada ainda.';
+          homeContent.appendChild(pEmpty);
+          return;
+        }
+
+        const nav = document.createElement('nav');
+        nav.className = 'home-links';
+
+        state.pages.forEach((p) => {
+          const a = document.createElement('a');
+          a.href = '#' + encodeURIComponent(p.slug);
+          a.textContent = p.nome;
+          a.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateTo(p.id, null);
+          });
+          nav.appendChild(a);
+        });
+
+        homeContent.appendChild(nav);
       }
 
       // -------------------------------------------------------------------
@@ -775,11 +830,9 @@
         return { pageId: matchedPage.id, anchor: anchorToken };
       }
 
-      // Dispara a mudança na barra de endereço (gera histórico para o botão Voltar)
       function navigateTo(pageId, anchor = null) {
         const targetHash = buildHashForRoute(pageId, anchor);
 
-        // Se o hash já é exatamente esse, aplica a rolagem direto sem duplicar histórico
         if (window.location.hash === targetHash) {
           selectPage(pageId, anchor);
           return;
@@ -789,6 +842,7 @@
       }
 
       function handleHashChange() {
+        closeSidebar();
         const route = parseCurrentHash();
         selectPage(route.pageId, route.anchor);
       }
@@ -798,19 +852,28 @@
       // -------------------------------------------------------------------
       // CARREGAMENTO NATIVO NO IFRAME (SEM FETCH / SEM DUPLICAÇÃO EM RAM)
       // -------------------------------------------------------------------
-      pageFrame.addEventListener('load', () => {
-        // Caso 1: Tela INÍCIO (usa srcdoc)
-        if (state.activePageId === HOME_PAGE_ID) {
-          tocList.innerHTML = '';
-          tocList.scrollLeft = 0;
-          try {
-            const doc = pageFrame.contentDocument;
-            if (doc) setupInternalLinks(doc);
-          } catch (_) {}
-          return;
+      function limparObserverDeTitulos() {
+        if (headingObserver) {
+          headingObserver.disconnect();
+          headingObserver = null;
         }
+      }
 
-        // Caso 2: Página HTML carregada nativamente via pageFrame.src
+      function carregarNoIframeSemDuplicarHistorico(url) {
+        try {
+          if (pageFrame.contentWindow && pageFrame.contentWindow.location) {
+            pageFrame.contentWindow.location.replace(url);
+            return;
+          }
+        } catch (_) {
+          // Fallback caso o navegador restrinja contentWindow em modo local
+        }
+        pageFrame.src = url;
+      }
+
+      pageFrame.addEventListener('load', () => {
+        if (state.activePageId === HOME_PAGE_ID) return;
+
         let doc = null;
         try {
           doc = pageFrame.contentDocument;
@@ -818,8 +881,8 @@
           doc = null;
         }
 
-        // Em modo offline restrito (file:// em alguns navegadores Android),
-        // o iframe exibe a página normalmente, mas bloqueia leitura do DOM externo.
+        // Em navegadores Android que isolam file:// por arquivo (Chrome/Brave),
+        // o iframe exibe a página normalmente, apenas sem leitura externa do DOM.
         if (!doc) {
           tocList.innerHTML = '';
           const msg = document.createElement('div');
@@ -845,15 +908,22 @@
       });
 
       function selectHomePage() {
+        limparObserverDeTitulos();
         state.activePageId = HOME_PAGE_ID;
         currentPageTitle.textContent = 'Início';
         atualizarItemAtivoDoMenu();
         pendingAnchor = null;
         displayedId = HOME_PAGE_ID;
 
-        // Remove src antes de definir srcdoc para garantir renderização limpa
-        pageFrame.removeAttribute('src');
-        pageFrame.srcdoc = buildHomePageHtml();
+        tocList.innerHTML = '';
+        tocList.scrollLeft = 0;
+
+        pageFrame.classList.add('hidden');
+        homeView.classList.remove('hidden');
+        homeView.scrollTop = 0;
+
+        // Libera a memória da página anterior do iframe ao voltar para Início
+        carregarNoIframeSemDuplicarHistorico('about:blank');
       }
 
       function selectPage(pageId, targetAnchor = null) {
@@ -872,7 +942,10 @@
         currentPageTitle.textContent = page.nome;
         atualizarItemAtivoDoMenu();
 
-        // Se a página já está carregada no iframe, apenas rola até a seção sem recarregar
+        homeView.classList.add('hidden');
+        pageFrame.classList.remove('hidden');
+
+        // Se a página já está aberta no iframe, apenas rola até o trecho sem recarregar
         if (displayedId === page.id) {
           try {
             const doc = pageFrame.contentDocument;
@@ -882,23 +955,22 @@
               return;
             }
           } catch (_) {
-            // Se file:// bloquear leitura do DOM e houver âncora, recarrega com #ancora nativo
             if (targetAnchor) {
-              pageFrame.removeAttribute('srcdoc');
-              pageFrame.src = page.arquivo + '#' + encodeURIComponent(targetAnchor);
+              carregarNoIframeSemDuplicarHistorico(page.arquivo + '#' + encodeURIComponent(targetAnchor));
             }
             return;
           }
         }
 
+        limparObserverDeTitulos();
         displayedId = page.id;
         pendingAnchor = targetAnchor;
 
-        // Remove srcdoc antes de definir src (se srcdoc permanecer, o navegador ignora src)
-        pageFrame.removeAttribute('srcdoc');
-        pageFrame.src = targetAnchor
+        const targetUrl = targetAnchor
           ? page.arquivo + '#' + encodeURIComponent(targetAnchor)
           : page.arquivo;
+
+        carregarNoIframeSemDuplicarHistorico(targetUrl);
       }
 
       function scrollToTarget(doc, targetId, smooth = true) {
@@ -930,6 +1002,7 @@
 
       // Ler H1 e H2 da página carregada e montar o menu horizontal rolante no topo
       function buildHorizontalHeadingsBar(doc) {
+        limparObserverDeTitulos();
         tocList.innerHTML = '';
         tocList.scrollLeft = 0;
 
@@ -968,6 +1041,24 @@
 
           tocList.appendChild(btn);
         });
+
+        // Destaca automaticamente o título visível durante a rolagem manual
+        if ('IntersectionObserver' in window) {
+          headingObserver = new IntersectionObserver(
+            (entries) => {
+              const visible = entries.find((entry) => entry.isIntersecting);
+              if (visible && visible.target && visible.target.id) {
+                highlightTocButtonById(visible.target.id);
+              }
+            },
+            {
+              root: doc,
+              rootMargin: '0px 0px -75% 0px',
+              threshold: 0
+            }
+          );
+          headings.forEach((h) => headingObserver.observe(h));
+        }
       }
 
       // Procura na lista PAGINAS o arquivo correspondente a um link
@@ -1018,7 +1109,6 @@
             const hashPart = partes[1];
             const nomeDoArquivo = filePart.split('?')[0].split('/').pop();
 
-            // Evita abrir o próprio index.html aninhado dentro do iframe
             if (nomeDoArquivo && nomeDoArquivo.toLowerCase() === 'index.html') {
               e.preventDefault();
               navigateTo(HOME_PAGE_ID, null);
@@ -1046,11 +1136,12 @@
       }
 
       // -------------------------------------------------------------------
-      // INICIALIZAÇÃO: respeita o hash da URL se o link já vier com seção
+      // INICIALIZAÇÃO
       // -------------------------------------------------------------------
       function init() {
         applyDarkMode(lerModoEscuroSalvo());
         carregarListaDePaginas();
+        inicializarTelaInicio();
         handleHashChange();
       }
 
