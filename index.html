@@ -309,11 +309,14 @@
       transform: translateX(18px);
     }
 
-    /* Menu lateral: só o item fixo "INÍCIO" */
+    /* Menu lateral: INÍCIO + lista automática das páginas */
     .page-list {
       list-style: none;
-      flex: none;
-      padding: 4px 8px 0;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 6px 8px 18px;
     }
 
     .page-item {
@@ -328,6 +331,12 @@
 
     .page-item.active {
       background-color: var(--bg-active);
+    }
+
+    .page-item-divider {
+      height: 1px;
+      background-color: var(--border-color);
+      margin: 6px 4px;
     }
 
     .page-select-btn {
@@ -537,16 +546,16 @@
     //
     //        { nome: "Nome exibido na INÍCIO e no topo", arquivo: "nomedoarquivo.html" },
     //
-    //      - "nome"    = o texto que aparece como link na página INÍCIO e no topo da tela.
+    //      - "nome"    = o texto que aparece como link na página INÍCIO, no menu lateral e no topo.
     //      - "arquivo" = o nome do arquivo EXATAMENTE como está na pasta
     //                    (maiúsculas e minúsculas contam! "Derby.html" é diferente de "DERBY.html",
     //                     e acento no nome do arquivo costuma dar problema: prefira sem acento).
     //
-    //   3) Salve e suba o index.html atualizado. Pronto: a página INÍCIO se atualiza sozinha,
-    //      não precisa mexer em mais nenhum lugar do código.
+    //   3) Salve e suba o index.html atualizado. Pronto: a página INÍCIO e o menu lateral
+    //      se atualizam sozinhos, não precisa mexer em mais nenhum lugar do código.
     //
     // REGRAS DA LISTA (onde mais dá erro):
-    //   - A ordem da lista é a ordem em que os links aparecem na página INÍCIO.
+    //   - A ordem da lista é a ordem em que os links aparecem na INÍCIO e no menu lateral.
     //   - Toda linha termina com vírgula, EXCETO a última (antes do colchete de fechamento ]).
     //   - Nome e arquivo ficam sempre entre aspas "assim".
     //   - Para REMOVER uma página, apague a linha dela (ou coloque // na frente para desativar).
@@ -595,6 +604,7 @@
       const closeSidebarBtn = document.getElementById('close-sidebar-btn');
       const sidebar = document.getElementById('sidebar');
       const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+      const pinnedPageList = document.getElementById('pinned-page-list');
       const homePageItem = document.getElementById('home-page-item');
       const homeSelectBtn = document.getElementById('home-select-btn');
       const currentPageTitle = document.getElementById('current-page-title');
@@ -716,8 +726,44 @@
         }
       });
 
+      function renderizarMenuLateral() {
+        // Remove itens dinâmicos antigos, mantendo o item fixo INÍCIO
+        pinnedPageList.querySelectorAll('[data-dynamic-menu-item="1"]').forEach((el) => el.remove());
+
+        if (state.pages.length === 0) return;
+
+        const divider = document.createElement('li');
+        divider.className = 'page-item-divider';
+        divider.setAttribute('role', 'separator');
+        divider.dataset.dynamicMenuItem = '1';
+        pinnedPageList.appendChild(divider);
+
+        state.pages.forEach((p) => {
+          const li = document.createElement('li');
+          li.className = 'page-item';
+          li.dataset.pageId = p.id;
+          li.dataset.dynamicMenuItem = '1';
+
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'page-select-btn';
+          btn.textContent = p.nome;
+
+          btn.addEventListener('click', () => {
+            closeSidebar();
+            navigateTo(p.id, null);
+          });
+
+          li.appendChild(btn);
+          pinnedPageList.appendChild(li);
+        });
+      }
+
       function atualizarItemAtivoDoMenu() {
         homePageItem.classList.toggle('active', state.activePageId === HOME_PAGE_ID);
+        pinnedPageList.querySelectorAll('.page-item[data-page-id]').forEach((item) => {
+          item.classList.toggle('active', item.dataset.pageId === state.activePageId);
+        });
       }
 
       // -------------------------------------------------------------------
@@ -1141,6 +1187,7 @@
       function init() {
         applyDarkMode(lerModoEscuroSalvo());
         carregarListaDePaginas();
+        renderizarMenuLateral();
         inicializarTelaInicio();
         handleHashChange();
       }
